@@ -2,6 +2,7 @@
 using System;
 using System.Linq;
 using LiveSplit.Options;
+using System.Windows.Forms;
 
 namespace LiveSplit.SonicFrontiers
 {
@@ -11,13 +12,18 @@ namespace LiveSplit.SonicFrontiers
         {
             if (watchers.Status.Current == Status.Quit && watchers.Status.Old == Status.NewGameMenu) // Main trigger for story mode
                 return Settings.StoryStart;
-            else if (Settings.ArcadeStart && watchers.CurrentGameMode == GameMode.CyberspaceChallenge) //removed Aracde check since it's not a category anymore
+            else if (Settings.ArcadeStart && watchers.CurrentGameMode == GameMode.CyberspaceChallenge) //removed Arcade check since it's not a category anymore
                 return (watchers.LevelID.Current != watchers.LevelID.Old) && watchers.LevelID.Old == LevelID.MainMenu;
             else if (Settings.BossRushStart && watchers.CurrentGameMode == GameMode.BossRush)
                 return watchers.LevelID.Old == LevelID.MainMenu && (watchers.LevelID.Current == LevelID.Island_Kronos_BossRush || watchers.LevelID.Current == LevelID.Island_Ares_BossRush || watchers.LevelID.Current == LevelID.Island_Chaos_BossRush || watchers.LevelID.Current == LevelID.Island_Ouranos_BossRush);
             else if (watchers.LevelID.Current == LevelID.Island_Another_Ouranos &&
                      watchers.LevelID.Old == LevelID.Island_Ouranos)
                 return true; // make this a setting
+            else if (Settings.IslandILStart && watchers.LevelID.Old == LevelID.MainMenu && (watchers.LevelID.Current == LevelID.Island_Ares || watchers.LevelID.Current == LevelID.Island_Chaos || watchers.LevelID.Current == LevelID.Island_Rhea || watchers.LevelID.Current == LevelID.Island_Ouranos))
+            {
+                watchers.AlreadyTriggeredBools.Add("Island_Kronos_story"); //fixes a bug where island swaps would split in ILs
+                return true;
+            }  
             return false;
         }
 
@@ -112,6 +118,20 @@ namespace LiveSplit.SonicFrontiers
             {
                 Log.Warning("watchers musicnotes old is null");
             }
+
+            // Island swap split
+            if (Settings.IslandSwapSplit && watchers.LevelID.Current == LevelID.Island_Kronos && (watchers.LevelID.Old == LevelID.Island_Ares || watchers.LevelID.Old == LevelID.Island_Chaos || watchers.LevelID.Old == LevelID.Island_Ouranos))
+            {
+                return true;
+            }
+
+            // Enter cyberspace split
+            if (Settings.EnterCyberspaceSplit && (watchers.LevelID.Current < LevelID.Island_Kronos || watchers.LevelID.Current == LevelID.Fishing) && (watchers.LevelID.Old == LevelID.Island_Kronos || watchers.LevelID.Old == LevelID.Island_Ares || watchers.LevelID.Old == LevelID.Island_Chaos || watchers.LevelID.Old == LevelID.Island_Ouranos || watchers.LevelID.Old == LevelID.Island_Another_Ouranos))
+                return true;
+
+            // Hacking start split
+            if ((Settings.Chaos_HackingStart && watchers.LevelID.Current == LevelID.Hacking_01 && watchers.LevelID.Old == LevelID.Island_Chaos) || (Settings.Ouranos_FirstHackingStart && watchers.LevelID.Current == LevelID.Hacking_02 && watchers.LevelID.Old == LevelID.Island_Ouranos) || (Settings.Ouranos_SecondHackingStart && watchers.LevelID.Current == LevelID.Hacking_03 && watchers.LevelID.Old == LevelID.Island_Ouranos))
+                return true;
             
             // Final boss split
             if (Settings.FinalBoss && watchers.LevelID.Current == LevelID.Boss_TheEnd && watchers.EndQTECount.Old == 3 && watchers.EndQTECount.Current == 0)
@@ -130,7 +150,7 @@ namespace LiveSplit.SonicFrontiers
 
         bool Reset()
         {
-            return false;
+            return watchers.Status.Current == Status.Quit && watchers.Status.Old == Status.NewGameMenu && Settings.AutoReset; // Reset on new game
         }
 
         bool IsLoading()
@@ -215,6 +235,15 @@ namespace LiveSplit.SonicFrontiers
             LevelID.w4_7 => Settings.w4_7_story,
             LevelID.w4_8 => Settings.w4_8_story,
             LevelID.w4_9 => Settings.w4_9_story,
+            LevelID.w4_A => Settings.w4_A_story,
+            LevelID.w4_B => Settings.w4_B_story,
+            LevelID.w4_C => Settings.w4_C_story,
+            LevelID.w4_D => Settings.w4_D_story,
+            LevelID.w4_E => Settings.w4_E_story,
+            LevelID.w4_F => Settings.w4_F_story,
+            LevelID.w4_G => Settings.w4_G_story,
+            LevelID.w4_H => Settings.w4_H_story,
+            LevelID.w4_I => Settings.w4_I_story,
             _ => false,
         };
 
@@ -226,6 +255,7 @@ namespace LiveSplit.SonicFrontiers
             "Amy_Second" => Settings.Amy_Second,
             "Knuckles_Second" => Settings.Knuckles_Second,
             "Tails_Second" => Settings.Tails_Second,
+            "Sonic_MasterTrial" => Settings.Sonic_MasterTrial,
             "Sonic_Tower1" => Settings.Sonic_Tower1,
             "Sonic_Tower2" => Settings.Sonic_Tower2,
             "Sonic_Tower3" => Settings.Sonic_Tower3,
@@ -295,6 +325,7 @@ namespace LiveSplit.SonicFrontiers
             "Rhea_Tower5" => Settings.Rhea_Tower5,
             "Rhea_Tower6" => Settings.Rhea_Tower6,
             "Island_Rhea_story" => Settings.Island_Rhea_story,
+			"Ouranos_FirstHackingStart" => Settings.Ouranos_FirstHackingStart,
             "Ouranos_Bridge" => Settings.Ouranos_Bridge,
             "Ouranos_SupremeDefeated" => Settings.Ouranos_SupremeDefeated,
             "Ouranos_BlueCE" => Settings.Ouranos_BlueCE,
@@ -302,9 +333,10 @@ namespace LiveSplit.SonicFrontiers
             "Ouranos_GreenCE" => Settings.Ouranos_GreenCE,
             "Ouranos_YellowCE" => Settings.Ouranos_YellowCE,
             "Ouranos_CyanCE" => Settings.Ouranos_CyanCE,
-            "Ouranos_WhiteCE" => Settings.Ouranos_WhiteCE,
+            //"Ouranos_WhiteCE" => Settings.Ouranos_WhiteCE,
             "Island_Ouranos_fishing" => Settings.Island_Ouranos_fishing,
-            "Ouranos_FinalDoor" => Settings.Ouranos_FinalDoor,
+			"Ouranos_SecondHackingStart" => Settings.Ouranos_SecondHackingStart,
+			"Ouranos_FinalDoor" => Settings.Ouranos_FinalDoor,
             _ => false,
         };
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Windows.Forms;
 using LiveSplit.ComponentUtil;
 using LiveSplit.Model;
 using LiveSplit.Options;
@@ -116,7 +117,7 @@ namespace LiveSplit.SonicFrontiers
                 if (addresses["APPLICATIONSEQUENCE"].IsZero())
                     return SonicFrontiers.LevelID.None;
 
-                if (game.ReadString(addresses["APPLICATIONSEQUENCE"] + 0xA0, 5, out var _string) && Enums.LevelID.TryGetValue(_string, out var levelid))
+				if (game.ReadString(addresses["APPLICATIONSEQUENCE"] + 0xA0, 5, out var _string) && Enums.LevelID.TryGetValue(_string, out var levelid))
                 {
                     if (levelid != SonicFrontiers.LevelID.MainMenu)
                         return levelid;
@@ -141,7 +142,7 @@ namespace LiveSplit.SonicFrontiers
                     return Flags.NoteFlags;
                 }
             );
-            StoryModeCyberSpaceCompletionFlag = new FakeMemoryWatcher<bool>(() => CurrentGameMode == GameMode.Story && LevelID.Current <= SonicFrontiers.LevelID.w4_9 && (Status.Current == SonicFrontiers.Status.Result || StoryModeCyberSpaceCompletionFlag.Old));
+            StoryModeCyberSpaceCompletionFlag = new FakeMemoryWatcher<bool>(() => CurrentGameMode == GameMode.Story && LevelID.Current <= SonicFrontiers.LevelID.w4_I && (Status.Current == SonicFrontiers.Status.Result || StoryModeCyberSpaceCompletionFlag.Old));
 
             QTEStatus = new FakeMemoryWatcher<QTEResolveStatus>(() =>
             {
@@ -285,7 +286,7 @@ namespace LiveSplit.SonicFrontiers
                 { "Ouranos_GreenCE",        new FakeMemoryWatcher<bool>(() => Flags.Ouranos_GreenCE) },
                 { "Ouranos_YellowCE",       new FakeMemoryWatcher<bool>(() => Flags.Ouranos_YellowCE) },
                 { "Ouranos_CyanCE",         new FakeMemoryWatcher<bool>(() => Flags.Ouranos_CyanCE) },
-                { "Ouranos_WhiteCE",        new FakeMemoryWatcher<bool>(() => Flags.Ouranos_WhiteCE) },
+                //{ "Ouranos_WhiteCE",        new FakeMemoryWatcher<bool>(() => Flags.Ouranos_WhiteCE) },
                 { "Ouranos_FinalDoor",      new FakeMemoryWatcher<bool>(()=> Flags.Ouranos_FinalDoor) },
                 { "Island_Ouranos_fishing", new FakeMemoryWatcher<bool>(() => LevelID.Old == SonicFrontiers.LevelID.Fishing && LevelID.Current == SonicFrontiers.LevelID.Island_Ouranos) }
             };
