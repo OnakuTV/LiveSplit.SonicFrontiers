@@ -797,9 +797,6 @@ namespace LiveSplit.SonicFrontiers
 
         private void GetPointerAddresses()
         {
-            Debug.Print("Title: " + RTTI["GameModeTitle::game::app"].ToString());
-            Debug.Print("Player: " + RTTI["GOCPlayerInformationUpdater::player::app"].ToString());
-            Debug.Print("Tutorial: " + RTTI["ObjForetasteSign::player::app"].ToString());
             addresses["APPLICATION"] = IntPtr.Zero;
             addresses["APPLICATIONSEQUENCE"] = IntPtr.Zero;
             addresses["GAMEMODE"] = IntPtr.Zero;
