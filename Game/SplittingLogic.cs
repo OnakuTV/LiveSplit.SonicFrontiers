@@ -23,7 +23,7 @@ namespace LiveSplit.SonicFrontiers
             {
                 watchers.AlreadyTriggeredBools.Add("Island_Kronos_story"); //fixes a bug where island swaps would split in ILs
                 return true;
-            }  
+            }
             return false;
         }
 
@@ -92,7 +92,7 @@ namespace LiveSplit.SonicFrontiers
                     BossRushAct.b4_11 => Settings.Boss4_11 && watchers.Status.Changed && watchers.Status.Current == Status.StageResult,
                     _ => false
                 };
-            }                                                               
+            }
 
             // Story mode
             // Doublesplit on start prevention
@@ -113,7 +113,7 @@ namespace LiveSplit.SonicFrontiers
             if (Settings.MusicNoteAny && watchers.MusicNotes.Old != null && !watchers.MusicNotes.Old.SequenceEqual(watchers.MusicNotes.Current))
             {
                 return true;
-            } 
+            }
             if (watchers.MusicNotes.Old == null)
             {
                 Log.Warning("watchers musicnotes old is null");
@@ -132,18 +132,18 @@ namespace LiveSplit.SonicFrontiers
             // Hacking start split
             if ((Settings.Chaos_HackingStart && watchers.LevelID.Current == LevelID.Hacking_01 && watchers.LevelID.Old == LevelID.Island_Chaos) || (Settings.Ouranos_FirstHackingStart && watchers.LevelID.Current == LevelID.Hacking_02 && watchers.LevelID.Old == LevelID.Island_Ouranos) || (Settings.Ouranos_SecondHackingStart && watchers.LevelID.Current == LevelID.Hacking_03 && watchers.LevelID.Old == LevelID.Island_Ouranos))
                 return true;
-            
+
             // Final boss split
             if (Settings.FinalBoss && watchers.LevelID.Current == LevelID.Boss_TheEnd && watchers.EndQTECount.Old == 3 && watchers.EndQTECount.Current == 0)
                 return true;
-            
+
             //Another Final Boss Split
             if (watchers.LevelID.Current == LevelID.Island_Another_Ouranos && watchers.AnotherQTECount.Old == 2 &&
                 watchers.EndQTECount.Current == 0)
             {
-                return true;    
+                return true;
             }
-            
+
             // Cyber space levels (in story mode)
             return CheckStorySplit(watchers.LevelID.Old) && watchers.StoryModeCyberSpaceCompletionFlag.Old && !watchers.StoryModeCyberSpaceCompletionFlag.Current;
         }
@@ -156,8 +156,11 @@ namespace LiveSplit.SonicFrontiers
         bool IsLoading()
         {
             return watchers.CurrentGameMode == GameMode.Arcade || watchers.CurrentGameMode == GameMode.CyberspaceChallenge || watchers.CurrentGameMode == GameMode.BossRush
-                || (watchers.LevelID.Current != LevelID.MainMenu && watchers.GameModeLoad)
-                || (watchers.IsInTutorial && (watchers.LevelID.Current <= LevelID.w4_9 || watchers.LevelID.Current == LevelID.Fishing)) 
+                || (watchers.LevelID.Current != LevelID.MainMenu && watchers.GameModeLoad) 
+                || (!watchers.PlayerVisual.Current && !watchers.IsOnMainMenu.Current && !watchers.ForestateSign.Current
+                && watchers.LevelID.Current != LevelID.Fishing && watchers.LevelID.Current != LevelID.Hacking_01 
+                && watchers.LevelID.Current != LevelID.Hacking_02 && watchers.LevelID.Current != LevelID.Hacking_03 && watchers.LevelID.Current != LevelID.Boss_TheEnd)
+                || (watchers.IsInTutorial && (watchers.LevelID.Current <= LevelID.w4_9 || watchers.LevelID.Current == LevelID.Fishing))
                 || (watchers.LevelID.Current != LevelID.MainMenu && (watchers.GameVersion == GameVersion.Unknown || watchers.GameVersion == GameVersion.v1_10) && watchers.Status.Current == Status.Finish);
         }
 
@@ -325,7 +328,7 @@ namespace LiveSplit.SonicFrontiers
             "Rhea_Tower5" => Settings.Rhea_Tower5,
             "Rhea_Tower6" => Settings.Rhea_Tower6,
             "Island_Rhea_story" => Settings.Island_Rhea_story,
-			"Ouranos_FirstHackingStart" => Settings.Ouranos_FirstHackingStart,
+            "Ouranos_FirstHackingStart" => Settings.Ouranos_FirstHackingStart,
             "Ouranos_Bridge" => Settings.Ouranos_Bridge,
             "Ouranos_SupremeDefeated" => Settings.Ouranos_SupremeDefeated,
             "Ouranos_BlueCE" => Settings.Ouranos_BlueCE,
@@ -335,8 +338,8 @@ namespace LiveSplit.SonicFrontiers
             "Ouranos_CyanCE" => Settings.Ouranos_CyanCE,
             //"Ouranos_WhiteCE" => Settings.Ouranos_WhiteCE,
             "Island_Ouranos_fishing" => Settings.Island_Ouranos_fishing,
-			"Ouranos_SecondHackingStart" => Settings.Ouranos_SecondHackingStart,
-			"Ouranos_FinalDoor" => Settings.Ouranos_FinalDoor,
+            "Ouranos_SecondHackingStart" => Settings.Ouranos_SecondHackingStart,
+            "Ouranos_FinalDoor" => Settings.Ouranos_FinalDoor,
             _ => false,
         };
     }
