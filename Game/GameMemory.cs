@@ -92,7 +92,10 @@ namespace LiveSplit.SonicFrontiers
                                     game.ReadPointer(ptr + 0x0, out ptr);
                                     if (test == 0 && ptr == RTTI["GameModeTitle::game::app"])
                                     {
+<<<<<<< HEAD
                                         Debug.Print("gaming");
+=======
+>>>>>>> ff93ff2f46934bc90fb3e157a927beece97e492c
                                         return true;
                                     }
                                     else
@@ -248,8 +251,6 @@ namespace LiveSplit.SonicFrontiers
                                             if (!ptr.IsZero())
                                             {
                                                 game.ReadPointer(ptr + 0x0, out ptr);
-
-                                                //Debug.Print((ptr == RTTI["GOCPlayerInformationUpdater::player::app"]).ToString());
                                                 if (!ptr.IsZero())
                                                 {
                                                     if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
