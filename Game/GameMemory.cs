@@ -59,6 +59,8 @@ namespace LiveSplit.SonicFrontiers
         public FakeMemoryWatcher<bool> PlayerVisual { get; }
         public FakeMemoryWatcher<bool> ForestateSign { get; }
         public FakeMemoryWatcher<bool> IsOnMainMenu { get; }
+        public FakeMemoryWatcher<bool> Paused { get; }
+        private bool flagTest = false;
 
         public Watchers(LiveSplitState LSstate)
         {
@@ -70,10 +72,11 @@ namespace LiveSplit.SonicFrontiers
             {
 
                 IntPtr ptr;
-                game.ReadPointer(game.MainModule.BaseAddress + 0x03D8C688, out ptr);
+                game.ReadPointer(game.MainModule.BaseAddress + 0x03DC7298, out ptr);
                 if (!ptr.IsZero())
                 {
-                    game.ReadPointer(ptr + 0x10, out ptr);
+                    //Debug.Print(ptr.ToString("X"));
+                    game.ReadPointer(ptr + 0x70, out ptr);
                     if (!ptr.IsZero())
                     {
                         game.ReadPointer(ptr + 0x1B0, out ptr);
@@ -85,12 +88,11 @@ namespace LiveSplit.SonicFrontiers
                                 game.ReadPointer(ptr + 0x60, out ptr);
                                 if (!ptr.IsZero())
                                 {
-   
                                     game.ReadValue<byte>(ptr + 0x100, out var test);
                                     game.ReadPointer(ptr + 0x0, out ptr);
                                     if (test == 0 && ptr == RTTI["GameModeTitle::game::app"])
                                     {
-                                        Debug.Print("huh?");
+                                        Debug.Print("gaming");
                                         return true;
                                     }
                                     else
@@ -139,7 +141,36 @@ namespace LiveSplit.SonicFrontiers
                 }
                 return false;
             });
-          
+
+            Paused = new FakeMemoryWatcher<bool>(() =>
+            {
+                IntPtr ptr;
+                game.ReadPointer(game.MainModule.BaseAddress + 0x03DAB020, out ptr);
+                if (!ptr.IsZero())
+                {
+                    game.ReadPointer(ptr + 0x2A0, out ptr);
+                    if (!ptr.IsZero())
+                    {
+
+                        game.ReadValue<int>(ptr + 0x418, out int value);
+                        if (value == 15 || value == 17 || value == 14)
+                        {
+                            flagTest = true;
+                        }
+                        else
+                        {
+                            if (PlayerVisual.Current == false)
+                            {
+                                flagTest = false;
+                            }
+                        }
+                    }
+
+                }
+                return false;
+
+            });
+
             PlayerVisual = new FakeMemoryWatcher<bool>(() =>
             {
 
@@ -170,7 +201,7 @@ namespace LiveSplit.SonicFrontiers
 
                                                 if (!ptr.IsZero())
                                                 {
-                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"])
+                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
                                                     {
                                                         return true;
                                                     }
@@ -221,7 +252,7 @@ namespace LiveSplit.SonicFrontiers
                                                 //Debug.Print((ptr == RTTI["GOCPlayerInformationUpdater::player::app"]).ToString());
                                                 if (!ptr.IsZero())
                                                 {
-                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"])
+                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
                                                     {
                                                         return true;
                                                     }
@@ -666,6 +697,7 @@ namespace LiveSplit.SonicFrontiers
             PlayerVisual.Update();
             ForestateSign.Update();
             IsOnMainMenu.Update();
+            Paused.Update();
 
             // Get the game flags for story mode
             //Flags = new DeepPointer(addresses["baseAddress"], 0x28, 0x110, 0x40, 0x50).Deref<StoryFlags>(game);
@@ -745,6 +777,29 @@ namespace LiveSplit.SonicFrontiers
             // This is used for the WFocus patch, which is essentially patching out a conditional jmp instruction.
             addresses["baseFocus"] = scanner.ScanOrThrow(new SigScanTarget("?? 36 48 8B 52 28"));
 
+            //0x03DEA858
+            addresses["baseMenu"] = scanner.ScanOrThrow(new SigScanTarget(7, "48 8B 47 28 48 8B 0D ?? ?? ?? ?? F3")
+            { OnFound = (p,s, addr) =>
+            {
+                int tempAddr = p.ReadValue<int>(addr) + 4;
+                IntPtr outPtr = (addr + tempAddr)+3;
+                return outPtr;
+            }
+
+            });
+
+            addresses["basePaused"] = scanner.ScanOrThrow(new SigScanTarget(2, "c7 83 ?? ?? ?? ?? ?? ?? ?? ?? e8 ?? ?? ?? ?? c6 44 24")
+            {
+                OnFound = (p, s, addr) =>
+                {
+                    IntPtr tempAddr = addr + p.ReadValue<int>(addr+2);
+                    int outPtr = p.ReadValue<int>(tempAddr);
+                    Debug.Print(outPtr.ToString("X"));
+                    return tempAddr;
+                }
+
+            });
+
             // Offsets - I prefer defining them here because it makes it easier to change them, if the need arises.
             // So far they never changed so it should be fine to leave them as constant values.
             offsets["APPLICATION"]       = 0x80;
@@ -800,9 +855,6 @@ namespace LiveSplit.SonicFrontiers
 
         private void GetPointerAddresses()
         {
-            Debug.Print("Title: " + RTTI["GameModeTitle::game::app"].ToString());
-            Debug.Print("Player: " + RTTI["GOCPlayerInformationUpdater::player::app"].ToString());
-            Debug.Print("Tutorial: " + RTTI["ObjForetasteSign::player::app"].ToString());
             addresses["APPLICATION"] = IntPtr.Zero;
             addresses["APPLICATIONSEQUENCE"] = IntPtr.Zero;
             addresses["GAMEMODE"] = IntPtr.Zero;

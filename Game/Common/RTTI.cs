@@ -1,6 +1,9 @@
 ﻿using LiveSplit.ComponentUtil;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing.Printing;
+using System.IO;
 
 namespace LiveSplit.SonicFrontiers
 {   
@@ -20,8 +23,10 @@ namespace LiveSplit.SonicFrontiers
             IEnumerable<IntPtr> init = scanner.ScanAll(new SigScanTarget("2E 3F 41 56"), 8);
 
             foreach (var entry in init)
+            {
                 RTTI_Entries.Add(scanner.Process.ReadString(entry + 4, 250).Replace("@@", "").Replace("@", "::"), (int)((long)entry - mainMbase - 0x10));
-
+                //Debug.Print(scanner.Process.ReadString(entry + 4, 250).Replace("@@", "").Replace("@", "::"));
+            }
             foreach (var entry in entries)
             {
                 long temp = (long)scanner.ScanOrThrow(new SigScanTarget(BitConverter.GetBytes(RTTI_Entries[entry])), 4) - 0xC;
