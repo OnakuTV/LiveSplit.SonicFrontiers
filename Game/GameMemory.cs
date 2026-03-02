@@ -133,10 +133,7 @@ namespace LiveSplit.SonicFrontiers
                             }
 
                         }
-
                     }
-
-
                 }
                 return false;
             });
@@ -144,120 +141,82 @@ namespace LiveSplit.SonicFrontiers
             Paused = new FakeMemoryWatcher<bool>(() =>
             {
                 IntPtr ptr;
-                game.ReadPointer(game.MainModule.BaseAddress + 0x03DAB020, out ptr);
+                //1.42
+                if (GameVersion == GameVersion.Unknown)
+                {
+                    game.ReadPointer(game.MainModule.BaseAddress + 0x03D90B38, out ptr);
+                }
+                //1.40
+                else if(GameVersion == GameVersion.v1_10)
+                {
+                    game.ReadPointer(game.MainModule.BaseAddress + 0x03D8C698, out ptr);
+                }
+                //1.30
+                else
+                {
+                    game.ReadPointer(game.MainModule.BaseAddress + 0x03D90B38, out ptr);
+                }
                 if (!ptr.IsZero())
                 {
-                    game.ReadPointer(ptr + 0x2A0, out ptr);
-                    if (!ptr.IsZero())
+                    game.ReadValue<int>(ptr + 0x78, out int value);
+                    if (value == -1)
                     {
-
-                        game.ReadValue<int>(ptr + 0x418, out int value);
-                        if (value == 15 || value == 17 || value == 14)
-                        {
-                            flagTest = true;
-                        }
-                        else
-                        {
-                            if (PlayerVisual.Current == false)
-                            {
-                                flagTest = false;
-                            }
-                        }
+                        flagTest = true;
+                        return false;
                     }
-
+                    else
+                    {
+                        if (!PlayerVisual.Current)
+                        {
+                            flagTest = false;
+                        }
+                        return true;
+                    }
                 }
                 return false;
-
             });
 
             PlayerVisual = new FakeMemoryWatcher<bool>(() =>
             {
-
-                if (isInCyberspace())
-                {
-                    IntPtr ptr = game.ReadPointer(game.MainModule.BaseAddress + 0x03DC7288);
-                    if (!ptr.IsZero())
+                if(GameVersion == GameVersion.v1_10) {
+                    if (isInCyberspace())
                     {
-                        game.ReadPointer(ptr + 0x80, out ptr);
+                        IntPtr ptr = game.ReadPointer(game.MainModule.BaseAddress + 0x03DC7288);
                         if (!ptr.IsZero())
                         {
-                            game.ReadPointer(ptr + 0xA0, out ptr);
+                            game.ReadPointer(ptr + 0x80, out ptr);
                             if (!ptr.IsZero())
                             {
-                                game.ReadPointer(ptr + 0x0, out ptr);
-                                if (!ptr.IsZero())
-                                {
-                                    game.ReadPointer(ptr + 0x170, out ptr);
-                                    if (!ptr.IsZero())
-                                    {
-                                        game.ReadPointer(ptr + 0xF8, out ptr);
-                                        if (!ptr.IsZero())
-                                        {
-                                            game.ReadPointer(ptr + 0xB0, out ptr);
-                                            if (!ptr.IsZero())
-                                            {
-                                                game.ReadPointer(ptr + 0x0, out ptr);
-
-                                                if (!ptr.IsZero())
-                                                {
-                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
-                                                    {
-                                                        return true;
-                                                    }
-                                                    else
-                                                    {
-                                                        return false;
-                                                    }
-                                                }
-                                            }
-
-                                        }
-
-                                    }
-
-                                }
-
-                            }
-                        }
-                    }
-
-                    return false;
-                }
-                else
-                {
-                    IntPtr ptr = game.ReadPointer(game.MainModule.BaseAddress + 0x03D8C680);
-                    if (!ptr.IsZero())
-                    {
-                        game.ReadPointer(ptr + 0x1B8, out ptr);
-                        if (!ptr.IsZero())
-                        {
-                            game.ReadPointer(ptr + 0x88, out ptr);
-                            if (!ptr.IsZero())
-                            {
-                                game.ReadPointer(ptr + 0x28, out ptr);
+                                game.ReadPointer(ptr + 0xA0, out ptr);
                                 if (!ptr.IsZero())
                                 {
                                     game.ReadPointer(ptr + 0x0, out ptr);
                                     if (!ptr.IsZero())
                                     {
-                                        game.ReadPointer(ptr + 0x58, out ptr);
+                                        game.ReadPointer(ptr + 0x170, out ptr);
                                         if (!ptr.IsZero())
                                         {
-                                            game.ReadPointer(ptr + 0x1B0, out ptr);
+                                            game.ReadPointer(ptr + 0xF8, out ptr);
                                             if (!ptr.IsZero())
                                             {
-                                                game.ReadPointer(ptr + 0x0, out ptr);
+                                                game.ReadPointer(ptr + 0xB0, out ptr);
                                                 if (!ptr.IsZero())
                                                 {
-                                                    if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
+                                                    game.ReadPointer(ptr + 0x0, out ptr);
+
+                                                    if (!ptr.IsZero())
                                                     {
-                                                        return true;
-                                                    }
-                                                    else
-                                                    {
-                                                        return false;
+                                                        if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
+                                                        {
+                                                            return true;
+                                                        }
+                                                        else
+                                                        {
+                                                            return false;
+                                                        }
                                                     }
                                                 }
+
                                             }
 
                                         }
@@ -265,110 +224,68 @@ namespace LiveSplit.SonicFrontiers
                                     }
 
                                 }
-
                             }
                         }
-                    }
 
-                    return false;
-                }
-                /*
-                //Ver 1.41 GOCPlayerVisuals
-                IntPtr ptr;
-                game.ReadPointer(game.MainModule.BaseAddress + 0x03DCB728, out ptr);
-                if (!ptr.IsZero())
-                { 
-                    game.ReadPointer(ptr + 0x88, out ptr);
-                    if (!ptr.IsZero())
+                        return false;
+                    }
+                    else
                     {
-                        game.ReadPointer(ptr + 0x28, out ptr);
+                        IntPtr ptr = game.ReadPointer(game.MainModule.BaseAddress + 0x03D8C680);
                         if (!ptr.IsZero())
                         {
-                            game.ReadPointer(ptr + 0x0, out ptr);
+                            game.ReadPointer(ptr + 0x1B8, out ptr);
                             if (!ptr.IsZero())
                             {
-                                game.ReadPointer(ptr + 0x190, out ptr);
+                                game.ReadPointer(ptr + 0x88, out ptr);
                                 if (!ptr.IsZero())
                                 {
-                                    game.ReadPointer(ptr + 0x48, out ptr);
+                                    game.ReadPointer(ptr + 0x28, out ptr);
                                     if (!ptr.IsZero())
                                     {
                                         game.ReadPointer(ptr + 0x0, out ptr);
-
-                                        if (ptr == RTTI["GOCPlayerVisual::player::app"])
-                                        {
-
-                                            return true;
-                                        }
-                                        else
-                                        {
-                                            return false;
-                                        }
-
-                                    }
-
-                                }
-
-                            }
-
-                        }
-
-                    }
-                }
-
-
-                return false;
-              /*
-              * Ver 1.40 GOCPlayerVisuals
-                    IntPtr ptr;
-                    game.ReadPointer(game.MainModule.BaseAddress + 0x03DC7288, out ptr);
-                    if (!ptr.IsZero())
-                    {
-                        game.ReadPointer(ptr+0x90, out ptr);
-                        if (!ptr.IsZero())
-                        {
-                        game.ReadPointer(ptr + 0x28, out ptr);
-
-                        if (!ptr.IsZero())
-                            {
-                            game.ReadPointer(ptr + 0x8, out ptr);
-
-                            if (!ptr.IsZero())
-                                {
-                                    game.ReadPointer(ptr + 0xC8, out ptr);
-
-                                    if (!ptr.IsZero())
-                                    {
-                                        game.ReadPointer(ptr + 0x1C0, out ptr);
-
                                         if (!ptr.IsZero())
                                         {
-                                            game.ReadPointer(ptr + 0x20, out ptr);
+                                            game.ReadPointer(ptr + 0x58, out ptr);
                                             if (!ptr.IsZero())
                                             {
-                                                game.ReadPointer(ptr + 0x0, out ptr);
+                                                game.ReadPointer(ptr + 0x1B0, out ptr);
                                                 if (!ptr.IsZero())
                                                 {
-                                                    if (ptr == RTTI["GOCPlayerVisual::player::app"])
+                                                    game.ReadPointer(ptr + 0x0, out ptr);
+                                                    if (!ptr.IsZero())
                                                     {
-
-                                                        return true;
-                                                    }
-                                                    else
-                                                    {
-                                                        return false;
+                                                        if (ptr == RTTI["GOCPlayerInformationUpdater::player::app"] && flagTest)
+                                                        {
+                                                            return true;
+                                                        }
+                                                        else
+                                                        {
+                                                            return false;
+                                                        }
                                                     }
                                                 }
+
                                             }
+
                                         }
+
                                     }
+
                                 }
                             }
                         }
-
                     }
+                }
+                else if(GameVersion == GameVersion.Unknown)
+                {
+                    return false;
+                }
+                else
+                {
+                    return false;
+                }
                 return false;
-                */
             });
             // Define our FakeMemoryWatchers. I prefer using these instead of the standard MemoryWatchers because I can define a custom Update function
             IGT = new FakeMemoryWatcher<TimeSpan>(() =>
@@ -768,7 +685,13 @@ namespace LiveSplit.SonicFrontiers
 
             // Base Address - For the Hedgehog Engine 2, it can be considered essentially the same as GWorld for Unreal Engine games.
             // Every important value needed by an autosplitter can essentially be grabbed from this address.
-            addresses["baseAddress"] = scanner.ScanOrThrow(new SigScanTarget(1, "E8 ???????? 4C 8B 78 70") { OnFound = (p, s, addr) => { IntPtr tempAddr = addr + p.ReadValue<int>(addr) + 0x4 + 0x3; return tempAddr + p.ReadValue<int>(tempAddr) + 0x4; } });
+            addresses["baseAddress"] = scanner.ScanOrThrow(new SigScanTarget(1, "E8 ???????? 4C 8B 78 70") {
+                OnFound = (p, s, addr) => {
+                    int test = p.ReadValue<int>(addr) + 0x4 + 0x3;
+                    IntPtr tempAddr = addr + p.ReadValue<int>(addr) + 0x4 + 0x3;
+                    //Debug.Print(test.ToString("X"));
+                    return tempAddr + p.ReadValue<int>(tempAddr) + 0x4; }
+            });
 
             // Game patch offset - This points to an instruction responsible for pausing the game if the user switches to another window.
             // This is used for the WFocus patch, which is essentially patching out a conditional jmp instruction.
@@ -778,20 +701,21 @@ namespace LiveSplit.SonicFrontiers
             addresses["baseMenu"] = scanner.ScanOrThrow(new SigScanTarget(7, "48 8B 47 28 48 8B 0D ?? ?? ?? ?? F3")
             { OnFound = (p,s, addr) =>
             {
-                int tempAddr = p.ReadValue<int>(addr) + 4;
-                IntPtr outPtr = (addr + tempAddr)+3;
+                IntPtr tempAddr = addr + p.ReadValue<int>(addr);
+                IntPtr outPtr = tempAddr + p.ReadValue<int>(tempAddr)+ -0x5;
+                //Debug.Print(outPtr.ToString("X"));
                 return outPtr;
             }
 
             });
 
-            addresses["basePaused"] = scanner.ScanOrThrow(new SigScanTarget(2, "c7 83 ?? ?? ?? ?? ?? ?? ?? ?? e8 ?? ?? ?? ?? c6 44 24")
+            addresses["basePaused"] = scanner.ScanOrThrow(new SigScanTarget(0, "89 45 ?? 49 8b 47 ?? 48 85 c0")
             {
                 OnFound = (p, s, addr) =>
                 {
-                    IntPtr tempAddr = addr + p.ReadValue<int>(addr+2);
+                    IntPtr tempAddr = addr + p.ReadValue<int>(addr);
                     int outPtr = p.ReadValue<int>(tempAddr);
-                    Debug.Print(outPtr.ToString("X"));
+                    Debug.Print(p.ReadValue<int>(addr).ToString("X"));
                     return tempAddr;
                 }
 
@@ -864,6 +788,7 @@ namespace LiveSplit.SonicFrontiers
             addresses["AnotherFinalBoss"] = IntPtr.Zero;
             addresses["PlayerVisual"] = IntPtr.Zero;
             offsets["GameModeExtensionCount"] = 0;
+
             var _base = (IntPtr)game.ReadValue<long>(addresses["baseAddress"]);
             if (!_base.IsZero())
             { 
@@ -1010,14 +935,13 @@ namespace LiveSplit.SonicFrontiers
                 && LevelID.Current != SonicFrontiers.LevelID.Island_Kronos && LevelID.Current != SonicFrontiers.LevelID.Island_Ouranos
                 && LevelID.Current != SonicFrontiers.LevelID.Island_Rhea)
             {
+                Debug.Print(LevelID.Current.ToString());
                 return true;
             }
             else
             {
                 return false;
             }
-            
-            
         }
     }
 }
